@@ -16,7 +16,7 @@ def github(path, method='GET', data=None):
 def validate(inputs):
     if not re.fullmatch(r'[a-f0-9-]{36}',inputs.get('request_id','')):raise ValueError('Identificador inválido.')
     path=inputs.get('section','')
-    if not re.fullmatch(r'article/sections/[\w-]+\.tex',path) or not (ROOT/path).is_file():raise ValueError('Seção inválida.')
+    if not (path=='article/main.tex' or re.fullmatch(r'article/sections/[\w-]+\.tex',path)) or not (ROOT/path).is_file():raise ValueError('Seção inválida.')
     if not re.fullmatch(r'[a-f0-9]{40}',inputs.get('base_sha','')):raise ValueError('Versão inválida.')
     if not 1<=len(inputs.get('source','').encode())<=45000:raise ValueError('A seção deve ter entre 1 e 45000 bytes.')
     if len(inputs.get('focus',''))>2000:raise ValueError('Orientação muito longa.')
