@@ -28,7 +28,7 @@ function card(item) {
 async function loadGitHub() { await loadSectionProposals(); }
 async function init() {
   try {
-    const response = await fetch('workspace.json');
+    const response = await fetch('workspace.json?v='+Date.now(), {cache:'no-store'});
     if (!response.ok) throw new Error('Não foi possível carregar o manuscrito.');
     workspace = await response.json();
     $('#version').textContent = workspace.version;
