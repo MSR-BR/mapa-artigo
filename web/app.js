@@ -66,7 +66,7 @@ let accessToken = '', activeSection, baseSha, originalText, reviewResult, review
 async function gh(path, options={}) {
   if (!accessToken && options.method && options.method!=='GET') throw new Error('Entre com sua conta pelo botão Entrar com GitHub primeiro.');
   const response=await fetch(`https://api.github.com/repos/${workspace.repository}/${path}`, {...options,headers:{Accept:'application/vnd.github+json',...(accessToken ? {Authorization:`Bearer ${accessToken}`} : {}),'Content-Type':'application/json',...options.headers}});
-  if(response.status===401){accessToken='';$('#connect-github').hidden=false;$('#disconnect-github').hidden=true;throw new Error('Sua sessão expirou. Clique em Entrar com GitHub para continuar.');}
+  if(response.status===401){accessToken='';$('#connect-github').hidden=false;$('#editor-connect').hidden=false;$('#disconnect-github').hidden=true;throw new Error('Sua sessão expirou. Clique em Entrar com GitHub para continuar.');}
   if (!response.ok) throw new Error(response.status===409 || response.status===422 ? 'A seção mudou desde sua leitura. Reabra o formulário para comparar antes de salvar.' : `GitHub: operação não concluída (${response.status}). Confira acesso e permissões.`);
   return response.status===204 ? null : response.json();
 }
@@ -91,7 +91,7 @@ function coloredDiff(before, after) {
 }
 async function openSection(path) {
   if(reviewBusy)return; activeSection=workspace.sections.find(s=>s.path===path); reviewResult=null; baseSha=null; $('#section-source').value='';
-  $('#section-editor-title').textContent=activeSection.title;
+  $('#section-editor-title').textContent=activeSection.title; $('#editor-connect').hidden=Boolean(accessToken);
   $('#section-editor').showModal(); $('#section-feedback').textContent='Carregando texto atual…';
   $('#section-comparison').hidden=true; $('#accept-review').hidden=true;
   try { const file=await gh(`contents/${path}?ref=${encodeURIComponent(workspace.branch||'main')}`); baseSha=file.sha; originalText=decodeText(file.content); $('#section-source').value=originalText; $('#section-feedback').textContent='Edite o texto LaTeX ou peça uma revisão desta seção.'; }
@@ -133,7 +133,7 @@ async function saveSection() {
 function setupSectionReview() {
  const panel=document.createElement('section'); panel.className='notice'; panel.innerHTML='<strong>Sua conta para colaborar</strong><p>Entre com sua conta do GitHub para revisar e salvar. A autorização fica limitada ao repositório do artigo; nenhuma credencial precisa ser copiada.</p><button type="button" id="connect-github" class="button primary">Entrar com GitHub</button> <button type="button" id="disconnect-github" class="button" hidden>Sair</button><p id="connection-status" role="status"></p>';
  $('#article-sections').before(panel);
- $('#connect-github').onclick=beginGitHubLogin;
+ $('#connect-github').onclick=beginGitHubLogin; $('#editor-connect').onclick=beginGitHubLogin;
  $('#disconnect-github').onclick=disconnectGitHub;
  window.addEventListener('message',receiveGitHubLogin);
  document.querySelectorAll('[data-edit-section]').forEach(button=>button.onclick=()=>openSection(button.dataset.editSection));
@@ -179,10 +179,10 @@ function receiveGitHubLogin(event){
  if(typeof data.token!=='string'||!/^ghu_[A-Za-z0-9_]{10,300}$/.test(data.token)||typeof data.login!=='string'){$('#connection-status').textContent='Não foi possível confirmar a conexão.';return;}
  accessToken=data.token;tokenExpiresAt=Date.now()+Math.min(Number(data.expiresIn)||28800,28800)*1000;
  $('#connection-status').textContent=`Conectado como ${data.login}. Você pode revisar e salvar seções.`;
- $('#connect-github').hidden=true;$('#disconnect-github').hidden=false;
+ $('#connect-github').hidden=true;$('#editor-connect').hidden=true;$('#disconnect-github').hidden=false; $('#section-feedback').textContent='Conectado ao GitHub. Você pode revisar ou salvar o texto do formulário.';
 }
 async function disconnectGitHub(){
  const token=accessToken;accessToken='';tokenExpiresAt=0;loginState=null;clearInterval(loginWatch);if(loginPopup&&!loginPopup.closed)loginPopup.close();
- $('#connect-github').hidden=false;$('#disconnect-github').hidden=true;$('#connection-status').textContent='Desconectado desta página.';
+ $('#connect-github').hidden=false;$('#editor-connect').hidden=false;$('#disconnect-github').hidden=true;$('#connection-status').textContent='Desconectado desta página.';
  if(token)try{const response=await fetch(authBase()+'/api/logout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});if(!response.ok)throw new Error();}catch{$('#connection-status').textContent='Desconectado desta página. Não foi possível confirmar a revogação da sessão no GitHub; ela expirará automaticamente.';}
 }
