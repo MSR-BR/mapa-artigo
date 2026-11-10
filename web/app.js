@@ -183,11 +183,14 @@ async function completeGitHubLogin(){
   accessToken=grant.token;tokenExpiresAt=Date.now()+Math.min(Number(grant.expiresIn)||28800,28800)*1000;
   $('#connection-status').textContent=`Conectado como ${grant.login}. Você pode revisar e salvar seções.`;
   $('#connect-github').hidden=true;$('#editor-connect').hidden=true;$('#disconnect-github').hidden=false;
-  if(saved.draft && workspace.sections.some(section=>section.path===saved.draft.section)){
-   await openSection(saved.draft.section);const currentSha=baseSha;baseSha=saved.draft.sha;$('#section-source').value=saved.draft.source;$('#review-focus').value=saved.draft.focus;
-   $('#section-feedback').textContent=currentSha===saved.draft.sha?'Conectado ao GitHub. Seu texto foi preservado; você pode revisar ou salvar.':'Seu texto foi preservado, mas a seção mudou durante a entrada. Compare com a versão atual antes de salvar.';
-  }
+
  }catch(error){$('#connection-status').textContent=error.message;}
+ finally{
+  if(saved?.repository===workspace.repository && saved.draft && workspace.sections.some(section=>section.path===saved.draft.section)){
+   await openSection(saved.draft.section);const currentSha=baseSha;baseSha=saved.draft.sha;$('#section-source').value=saved.draft.source;$('#review-focus').value=saved.draft.focus;
+   $('#section-feedback').textContent=currentSha!==saved.draft.sha?'Seu texto foi preservado, mas a seção mudou durante a entrada. Compare com a versão atual antes de salvar.':accessToken?'Conectado ao GitHub. Seu texto foi preservado; você pode revisar ou salvar.':'Seu texto foi preservado. Entre com GitHub para revisar ou salvar.';
+  }
+ }
 }
 async function disconnectGitHub(){
  const token=accessToken;accessToken='';tokenExpiresAt=0;
