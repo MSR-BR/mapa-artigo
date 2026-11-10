@@ -81,7 +81,7 @@ def build(output, compile_pdf=True):
             reviews.append(json.loads(p.read_text()))
         except json.JSONDecodeError:
             raise ValueError(f'Invalid review file: {p.name}')
-    data = {'branch': 'main', 'repository': REPO, 'version': version, 'sha': sha, 'generatedAt': now.isoformat(), 'pdf': pdfname, 'compiled': compile_pdf, 'abstract': abstract, 'sections': sections, 'context': contexts, 'reviews': reviews, 'runUrl': f'https://github.com/{REPO}/actions/runs/{os.getenv("GITHUB_RUN_ID", "")}' }
+    data = {'authUrl': json.loads((ROOT/'auth-config.json').read_text()).get('url','') if (ROOT/'auth-config.json').exists() else '', 'branch': 'main', 'repository': REPO, 'version': version, 'sha': sha, 'generatedAt': now.isoformat(), 'pdf': pdfname, 'compiled': compile_pdf, 'abstract': abstract, 'sections': sections, 'context': contexts, 'reviews': reviews, 'runUrl': f'https://github.com/{REPO}/actions/runs/{os.getenv("GITHUB_RUN_ID", "")}' }
     (output / 'workspace.json').write_text(json.dumps(data, ensure_ascii=False))
     for name in ['index.html', 'style.css', 'app.js']:
         shutil.copy2(ROOT / 'web' / name, output / name)
