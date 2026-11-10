@@ -52,5 +52,10 @@ O build falha se o LaTeX não compila; não substitui silenciosamente o document
 
 O manuscrito e o contexto foram recuperados do stash local **Preserved pre-C168 research and outreach drafts 2026-11-01; local only** do projeto Mapa. A versão 2 é a base de trabalho (rascunho datado de 30/10/2026). A elaboração e a decisão de submissão permanecem com os autores. Nenhum serviço de submissão editorial está integrado.
 
-## Revisão no formulário
-Em cada seção, use **Editar e revisar com IA**. Conecte uma credencial GitHub fine-grained restrita ao repositório com Contents e Actions: leitura e escrita. A credencial permanece apenas na memória da aba; desconecte ao terminar. A chave GPT permanece no secret da automação, nunca no navegador. A IA gera uma proposta na branch `collaboration`; o formulário mostra original, proposta e comparação com cores. **Aceitar no formulário** permite ajustes antes de **Salvar seção e gerar PDF**. O salvamento usa a versão original para impedir sobrescrita concorrente e preserva autoria no histórico. A revisão não publica alterações automaticamente. Os rascunhos enviados à IA e seus resultados ficam públicos no repositório público.
+## Login e revisão pela própria página
+
+Clique em **Entrar com GitHub** para conectar sua conta. O GitHub App MAPA Artigo MSR-BR está restrito ao repositório do artigo e pede somente Contents e Actions: escrita, além de Metadata: leitura. O serviço de login é https://mapa-artigo-login.vercel.app; os segredos ficam no servidor e a chave GPT continua no Actions. Não é necessário copiar tokens nem usar o console do GitHub para revisar ou salvar.
+
+Cada autor precisa ter acesso de escrita ao repositório e autoriza a integração com sua própria conta. O botão de cada seção abre o editor, as orientações para IA e a comparação colorida. Aceitar coloca a proposta no formulário; salvar registra a autoria, bloqueia sobrescritas concorrentes e inicia a publicação do PDF. A sessão fica somente na memória da aba; ao recarregar, clique novamente em Entrar com GitHub. Sair limpa a sessão e solicita sua revogação.
+
+A instalação administrativa é uma etapa única; o uso cotidiano ocorre pela página.
