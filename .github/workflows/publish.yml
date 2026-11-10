@@ -42,7 +42,7 @@ jobs:
           if git ls-files --error-unmatch scripts/build.py >/dev/null 2>&1; then exit 0; fi
           git config user.name 'Research Map workspace'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add article context reviews scripts web README.md .gitignore .github/ISSUE_TEMPLATE
+          git add article context scripts web README.md .gitignore .github/ISSUE_TEMPLATE
           git commit -m 'Expand recovered manuscript and collaboration workspace'
           git -c 'credential.helper=!f() { echo username=x-access-token; echo password=$GH_TOKEN; }; f' push origin HEAD:main
       - name: Compilar PDF e página
