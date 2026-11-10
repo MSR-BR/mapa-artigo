@@ -1,0 +1,50 @@
+% Research Map article: sections 1-7 drafted (C163).
+% Target journal: Information Processing & Management. No journal template assumed.
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{url}
+\geometry{margin=28mm}
+
+\newcommand{\outlinenote}[1]{\par\smallskip\noindent\textit{Planned content: #1}\par\medskip}
+
+\title{The Research Map: A Method and Human-Supervised AI System for Structuring Research Plans}
+\author{S{\'e}rgio Luiz Braga Fran\c{c}a$^{a}$ \quad Mario Reis$^{b}$\\[0.6em]
+\small $^{a}$Escola de Engenharia, Universidade Federal Fluminense (UFF)\\
+\small Campus da Praia Vermelha, Rua Passo da P\'atria, 156, S\~ao Domingos\\
+\small Niter\'oi, RJ 24210-240, Brazil\\[0.25em]
+\small $^{b}$Instituto de F\'isica, Universidade Federal Fluminense (UFF)\\
+\small Av. Gal. Milton Tavares de Souza, s/n\textsuperscript{o}, Campus da Praia Vermelha\\
+\small Niter\'oi, RJ 24210-346, Brazil}
+\date{Working draft, 30 October 2026}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Research plans require explicit relationships among a central problem, objectives, literature, planned methods, and expected outputs. This article describes the Research Map, a five-stage method with a companion objective--method matrix, and examines its operationalization in a human-supervised AI application. We analyze two primary methodological documents, inspect the relevant software implementation and local technical checks, compare related scholarly systems and publicly documented applications, and present a constructed illustrative walkthrough. The application represents planning units as editable proposals and confirmed content, records links and revisions, marks dependent element types for reconsideration, and supports conditional advisor review of student submissions. The walkthrough shows how a hypothetical change to a research problem would call for renewed inspection of objectives, topics, and methods; it is not an observed application session. The contribution is a traceable account of the correspondence between this particular method and its implemented workflow, including incomplete translations: research questions have no dedicated unit, revision impact is determined by element type rather than exact links, and the final coherence review is advisory. These descriptions do not establish scientific validity, usability, improved planning quality, or time savings. The resulting map is a revisable planning artifact whose methodological adequacy remains a human judgment.
+\end{abstract}
+\noindent\textbf{Keywords:} research planning; research methodology; human-AI collaboration; AI-assisted authoring; traceability.
+
+\input{sections/01-introduction}
+\input{sections/02-related-work}
+\input{sections/03-method}
+\input{sections/04-system}
+\input{sections/05-walkthrough}
+\input{sections/06-discussion}
+\input{sections/07-conclusion}
+
+\section*{Declarations}
+\addcontentsline{toc}{section}{Declarations}
+\outlinenote{Author contributions, use of AI, data/code availability, funding, conflicts of interest, and supplementary material; complete only after coauthor and journal review.}
+
+{\small
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{plain}
+\bibliography{references}
+}
+
+\end{document}

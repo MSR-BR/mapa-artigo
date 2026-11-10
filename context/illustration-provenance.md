@@ -1,0 +1,15 @@
+# C162 illustration provenance and observation status
+
+Date: 29 October 2026. Target: *Information Processing & Management* manuscript, C162 only. Git revision inspected: `a1c6d9708fbb8e553a419088154d8bd7aa32ba25` (C165 microphone change unrelated to this walkthrough). The C161 implementation audit used `86a05096495f059162e6ac4ca1761a88651fe5f3`; the cited workflow files were checked again and are unchanged in the inspected revision. This is an **internal constructed illustration**, not a participant case or an application capture.
+
+| Artifact or assertion | Origin | Observation status | Editorial use |
+|---|---|---|---|
+| Fictional library, photograph collection, problem, objectives, topics and matrix cells | Constructed for C162 by the article assistant; no person or institution supplied data | Hypothetical values, never entered into a project | Illustrate relations only; never label as AI-generated or observed output |
+| Revised problem wording and its meaning | Constructed for C162 | Hypothetical author action | Show a possible upstream edit; no methodological appraisal |
+| Problem and objective wording checks | Current `definition-validation.ts` called locally with constructed strings | Observed local validator return: no structural/lexical messages for revised problem, general objective and three objectives | Report only the narrow check; no claim of route, database or scholarly validity |
+| Draft versus canonical confirmation; stale marking and retained history | C161 code audit, reaffirmed at current HEAD: `workflow-edit.ts`, `definition/route.ts`, `versioned-context.ts`, history route/migration | Source-inspected implementation, with previous local tests; **not run on this constructed project** | Diagram may represent the mechanism but must say conceptual path |
+| Chapter links, reference requirements, matrix and final-map review | C161 code audit: chapter/methodology/final-map validators and routes | Source-inspected implementation; no real references supplied and no completed fictional map | Explain conditions and limits; do not show a passing completed state |
+| PDF/DOCX | C161 source and local export tests on separate fixtures | Capability observed at tested layer; **no export for this example** | Conditional route box, not a created artifact |
+| `figures/walkthrough.tex` | Original C162 vector-like LaTeX diagram | Conceptual rendering; compiled and visually inspected locally | Figure label must state “constructed illustration; no app screenshot or user data” |
+
+No personal information, real library identity, DOI, participant quotation, app screenshot, AI response, model call, production request or reserved benchmark case was used. Source method anchors are F03/F07 as defined in `method.md`. Existing C161 tests and the local wording check cannot be converted into efficacy or methodological-evaluation results. Mario and Sergio remain the only people who may make substantive methodological judgments; neither has been asked to evaluate this partial draft.
