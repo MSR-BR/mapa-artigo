@@ -25,17 +25,7 @@ function card(item) {
   if (!item.html_url?.startsWith(`https://github.com/${workspace.repository}/`)) return '';
   return `<article class="card"><div class="meta">#${escapeHTML(item.number)} · ${escapeHTML(item.user?.login)} · ${escapeHTML(date(item.created_at))}</div><h3><a href="${escapeHTML(item.html_url)}" target="_blank" rel="noopener">${escapeHTML(item.title)} ↗</a></h3><p>${escapeHTML((item.body || '').slice(0,260))}</p></article>`;
 }
-async function loadGitHub() {
-  try {
-    const response = await fetch(`https://api.github.com/repos/${workspace.repository}/issues?state=open&per_page=100`);
-    if (!response.ok) throw new Error();
-    const issues = await response.json();
-    $('#discussions').innerHTML = issues.map(card).join('');
-    $('#discussion-status').textContent = issues.length ? 'Propostas abertas para a próxima versão. Abra uma proposta para discutir e revisar as mudanças.' : 'Nenhuma proposta pendente. Crie uma sugestão ou solicite uma nova revisão da IA.';
-  } catch {
-    $('#discussion-status').innerHTML = `Não foi possível carregar as propostas agora. <a href="${githubURL('issues')}" target="_blank" rel="noopener">Consultar propostas ↗</a>`;
-  }
-}
+async function loadGitHub() { await loadSectionProposals(); }
 async function init() {
   try {
     const response = await fetch('workspace.json');
@@ -74,8 +64,8 @@ init();
 /* Section review: credentials remain in memory and are never sent to OpenAI. */
 let accessToken = '', activeSection, baseSha, originalText, reviewResult, reviewBusy=false;
 async function gh(path, options={}) {
-  if (!accessToken) throw new Error('Conecte sua credencial do GitHub primeiro.');
-  const response=await fetch(`https://api.github.com/repos/${workspace.repository}/${path}`, {...options,headers:{Accept:'application/vnd.github+json',Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json',...options.headers}});
+  if (!accessToken && options.method && options.method!=='GET') throw new Error('Conecte sua credencial do GitHub primeiro.');
+  const response=await fetch(`https://api.github.com/repos/${workspace.repository}/${path}`, {...options,headers:{Accept:'application/vnd.github+json',...(accessToken ? {Authorization:`Bearer ${accessToken}`} : {}),'Content-Type':'application/json',...options.headers}});
   if (!response.ok) throw new Error(response.status===409 || response.status===422 ? 'A seção mudou desde sua leitura. Reabra o formulário para comparar antes de salvar.' : `GitHub: operação não concluída (${response.status}). Confira acesso e permissões.`);
   return response.status===204 ? null : response.json();
 }
@@ -142,4 +132,17 @@ function setupSectionReview() {
  $('#accept-review').onclick=()=>{if(reviewResult){$('#section-source').value=reviewResult.revised;$('#accept-review').hidden=true;$('#section-feedback').textContent='Sugestão aplicada ao formulário. Você pode ajustar o texto antes de salvar.';}};
  $('#discard-review').onclick=()=>{reviewResult=null;$('#section-comparison').hidden=true;$('#accept-review').hidden=true;};
  for(const selector of ['#review-link','#ai-action']) {const link=$(selector);link.removeAttribute('target');link.removeAttribute('href');link.textContent='Revisar uma seção';link.onclick=()=>{location.hash='article';document.querySelector('[data-edit-section]')?.click();};}
+}
+
+async function loadSectionProposals() {
+ try {
+  const files=await gh('contents/reviews/requests?ref=collaboration');
+  const reports=await Promise.all(files.filter(f=>f.name.endsWith('.json')).slice(-12).map(async file=>{const value=await gh(`contents/${file.path}?ref=collaboration`);return JSON.parse(decodeText(value.content));}));
+  const hashes=new Map();
+  for(const section of workspace.sections){const bytes=new TextEncoder().encode(section.source);const prefix=new TextEncoder().encode(`blob ${bytes.length}\0`);const payload=new Uint8Array(prefix.length+bytes.length);payload.set(prefix);payload.set(bytes,prefix.length);hashes.set(section.path,Array.from(new Uint8Array(await crypto.subtle.digest('SHA-1',payload)),b=>b.toString(16).padStart(2,'0')).join(''));}
+  const pending=reports.filter(r=>!r.error && hashes.get(r.section)===r.baseSha).sort((a,b)=>Number(b.runId)-Number(a.runId));
+  $('#discussion-status').textContent=pending.length ? 'Revisões de seções ainda aplicáveis ao manuscrito atual. Abra e decida no formulário.' : 'Nenhuma revisão pendente para esta versão.';
+  $('#discussions').replaceChildren();
+  for(const report of pending){const article=document.createElement('article');article.className='card';const title=document.createElement('h3');title.textContent=workspace.sections.find(s=>s.path===report.section)?.title||report.section;const summary=document.createElement('p');summary.textContent=report.summary;const button=document.createElement('button');button.className='button';button.textContent='Abrir comparação';button.onclick=async()=>{await openSection(report.section);if(!baseSha)return;if(baseSha!==report.baseSha){$('#section-feedback').textContent='Esta revisão ficou desatualizada. Solicite uma nova revisão.';return;}$('#section-source').value=report.original;reviewResult=report;$('#review-original').textContent=report.original;$('#review-proposed').textContent=report.revised;$('#review-diff').innerHTML=coloredDiff(report.original,report.revised);$('#review-reason').textContent=report.summary;$('#section-comparison').hidden=false;$('#accept-review').hidden=false;};article.append(title,summary,button);$('#discussions').append(article);}
+ } catch {$('#discussion-status').textContent='Nenhuma revisão disponível agora. Solicite uma revisão no formulário de uma seção.';}
 }
