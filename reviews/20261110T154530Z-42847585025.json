@@ -1,0 +1,71 @@
+{
+  "summary": "O manuscrito está bem alinhado ao escopo descritivo definido no contrato: preserva as cinco etapas, a matriz associada, a supervisão humana e a distinção entre comportamento implementado, parcial e prospectivo. A redação já evita, em geral, alegações de eficácia e não transforma a ilustração em evidência empírica. Nesta revisão inicial, minhas prioridades são pequenos ajustes de clareza, consistência terminológica e moderação de formulações comparativas que hoje soam mais fortes do que a base declarada permite.",
+  "notes": "Limitações desta revisão: não houve verificação bibliográfica externa, teste de execução do sistema, nem auditoria independente do ledger de alegações; a análise se baseia apenas nos trechos fornecidos.\n\nDecisões e declarações pendentes para a versão final:\n- Definir autor correspondente.\n- Definir declarações CRediT.\n- Confirmar declarações finais/back matter exigidas pela revista-alvo.\n- Confirmar a formulação final sobre propriedade intelectual/autoria metodológica e permissões para citar os documentos privados de agosto.\n- Decidir se os documentos metodológicos primários entrarão como material suplementar e em que forma, após revisão dos coautores e checagem das regras da revista.\n- Realizar a aprovação final integral do manuscrito pelos coautores.\n\nPontos que pedem cautela editorial contínua:\n- Formulações comparativas como “closest” ou equivalentes devem permanecer moderadas, pois derivam de revisão focada/narrativa, não de busca sistemática nem teste funcional autenticado.\n- Sempre manter explícita a diferença entre suporte documental do método, inspeção estática do código, checagens locais limitadas e ilustração construída.\n- Não converter a revisão final consultiva do sistema em garantia de coerência científica ou metodológica.",
+  "suggestions": [
+    {
+      "section": "article/sections/01-introduction.tex",
+      "title": "Especificar melhor a natureza da evidência técnica mencionada na introdução",
+      "reason": "A expressão atual é correta, mas vaga. Como o artigo depende da distinção entre inspeção de código, checagens locais e evidência empírica ausente, vale tornar essa base mais explícita já no parágrafo de escopo.",
+      "original": "inspection of relevant source code and local technical checks",
+      "replacement": "inspection of relevant source code, static implementation paths, and limited local technical checks",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/02-related-work.tex",
+      "title": "Suavizar comparação de produto para evitar hierarquia excessiva",
+      "reason": "\"the closest publicly documented product comparator\" soa mais assertivo do que a base declarada permite, já que a própria seção informa que se trata de documentação pública não testada em fluxos autenticados.",
+      "original": "ProjectReady AI is the closest publicly documented product comparator",
+      "replacement": "ProjectReady AI is a close publicly documented product comparator",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/02-related-work.tex",
+      "title": "Tornar mais neutra a caracterização do levantamento de produtos",
+      "reason": "\"focused scan\" é compreensível, mas menos preciso do que a linguagem usada no restante da seção para revisão focada de documentação pública.",
+      "original": "In this focused scan,",
+      "replacement": "In this focused review of public documentation,",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/03-method.tex",
+      "title": "Uniformizar a terminologia da matriz com o restante do artigo",
+      "reason": "Aqui aparece \"planning matrix\", enquanto o manuscrito adota de modo predominante \"objective--method matrix\". A uniformização melhora a rastreabilidade conceitual entre método, sistema e ilustração.",
+      "original": "places a planning matrix beside the specific objectives",
+      "replacement": "places the objective--method matrix beside the specific objectives",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/04-system.tex",
+      "title": "Clarificar que a extensão da matriz é uma decisão de software",
+      "reason": "A frase atual é correta, mas pode soar como ampliação do método em si. Convém explicitar que se trata de uma extensão na representação da aplicação.",
+      "original": "A general-objective synthesis row extends the original map",
+      "replacement": "A software-level general-objective synthesis row extends the original map's representation",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/06-discussion.tex",
+      "title": "Moderar formulação sobre o que a comparação estabelece",
+      "reason": "A frase atribui à comparação um efeito conclusivo forte (\"establish\"). Como a própria seção delimita comparação dirigida, sem teste autenticado nem busca exaustiva, convém reduzir o tom inferencial.",
+      "original": "The closest methodological papers establish why those broad features cannot serve as novelty claims.",
+      "replacement": "The closest methodological papers help show why those broad features cannot serve as novelty claims in this article.",
+      "applicable": true
+    }
+  ],
+  "model": "gpt-5.4",
+  "created_at": "2026-11-10T15:45:30.348317+00:00",
+  "commit": "61c4a61704e4ff42f9e356bea37263cb88b1335e",
+  "focus": "Revisão editorial inicial: priorize até 6 mudanças concretas de clareza, consistência terminológica e sustentação das afirmações. Liste separadamente as decisões e declarações pendentes dos autores para a versão final. Preserve o escopo descritivo e não invente resultados nem referências.",
+  "response_id": "resp_08192d84a832a582016af33c014bb087d1b51981ab18568737",
+  "usage": {
+    "input_tokens": 13253,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 1398,
+    "output_tokens_details": {
+      "reasoning_tokens": 415
+    },
+    "total_tokens": 14651
+  }
+}
