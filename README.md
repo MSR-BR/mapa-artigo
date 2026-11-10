@@ -31,7 +31,7 @@ A IA abre um **draft pull request**: somente trechos exatos e únicos podem ser 
 ## Configuração do GitHub
 
 - Pages: **Settings → Pages → Source: GitHub Actions**.
-- Secret de Actions: `OPENAI_API_KEY`.
+- Secret de Actions: `OPENAI_API_KEY_ARTIGOSERGIO` (exposto ao script como `OPENAI_API_KEY`).
 - **Settings → Actions → General → Workflow permissions:** habilitar **Allow GitHub Actions to create and approve pull requests** para a criação das propostas. A automação nunca aprova PRs; o workflow pede apenas as permissões necessárias no próprio YAML.
 - O plano GitHub Free exige repositório público para Pages. O conteúdo publicado é público, mesmo que não seja indexado por buscadores. `noindex` não é controle de acesso.
 
@@ -51,3 +51,6 @@ O build falha se o LaTeX não compila; não substitui silenciosamente o document
 ## Origem e publicação
 
 O manuscrito e o contexto foram recuperados do stash local **Preserved pre-C168 research and outreach drafts 2026-11-01; local only** do projeto Mapa. A versão 2 é a base de trabalho (rascunho datado de 30/10/2026). A elaboração e a decisão de submissão permanecem com os autores. Nenhum serviço de submissão editorial está integrado.
+
+## Revisão no formulário
+Em cada seção, use **Editar e revisar com IA**. Conecte uma credencial GitHub fine-grained restrita ao repositório com Contents e Actions: leitura e escrita. A credencial permanece apenas na memória da aba; desconecte ao terminar. A chave GPT permanece no secret da automação, nunca no navegador. A IA gera uma proposta na branch `collaboration`; o formulário mostra original, proposta e comparação com cores. **Aceitar no formulário** permite ajustes antes de **Salvar seção e gerar PDF**. O salvamento usa a versão original para impedir sobrescrita concorrente e preserva autoria no histórico. A revisão não publica alterações automaticamente. Os rascunhos enviados à IA e seus resultados ficam públicos no repositório público.
