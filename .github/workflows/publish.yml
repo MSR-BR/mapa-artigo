@@ -1,0 +1,83 @@
+name: Publicar artigo e PDF
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: article-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.build.outputs.version }}
+      pdf: ${{ steps.build.outputs.pdf }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Recuperar pacote inicial, se necessário
+        if: hashFiles('scripts/build.py') == ''
+        run: python3 -m zipfile -e workspace.zip .
+      - name: Instalar compiladores
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended pandoc poppler-utils
+      - name: Validar scripts
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_*.py'
+          node --check web/app.js
+      - name: Incorporar arquivos do pacote inicial
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git ls-files --error-unmatch scripts/build.py >/dev/null 2>&1; then exit 0; fi
+          git config user.name 'Research Map workspace'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add article context reviews scripts web README.md .gitignore .github/ISSUE_TEMPLATE
+          git commit -m 'Expand recovered manuscript and collaboration workspace'
+          git -c 'credential.helper=!f() { echo username=x-access-token; echo password=$GH_TOKEN; }; f' push origin HEAD:main
+      - name: Compilar PDF e página
+        id: build
+        run: |
+          export GITHUB_SHA=$(git rev-parse HEAD)
+          python3 scripts/build.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: article-${{ steps.build.outputs.version }}
+          path: site/
+          retention-days: 90
+      - name: Publicar versão permanente do PDF
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.build.outputs.version }}
+          PDF: ${{ steps.build.outputs.pdf }}
+        run: |
+          gh release create "$VERSION" "site/$PDF" site/version.json --target "$(git rev-parse HEAD)" --title "Research Map · $VERSION" --generate-notes --prerelease
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: site/
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar área de trabalho
+        id: deployment
+        uses: actions/deploy-pages@v4
