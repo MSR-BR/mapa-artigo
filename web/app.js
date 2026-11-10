@@ -12,6 +12,8 @@ function setView() {
   if (!['article','suggestions','versions','guide'].includes(hash)) requestAnimationFrame(() => document.getElementById(hash)?.scrollIntoView());
 }
 function suggest(section = 'Geral') {
+  const selected=workspace.sections.find(s=>s.title===section)||workspace.sections[0]; openSection(selected.path); return;
+
   $('#suggest-section').value = section;
   $('#suggestion-dialog').showModal();
   $('#suggest-title').focus();
@@ -43,10 +45,10 @@ async function init() {
     $('#repo-link').href = githubURL('');
     $('#invite-link').href = githubURL('settings/access');
     for (const selector of ['#top-pdf','#download-pdf']) $(selector).href = workspace.pdf;
-    for (const selector of ['#review-link','#ai-action']) $(selector).href = githubURL('actions/workflows/review.yml');
+    
     $('#abstract-text').textContent = workspace.abstract;
     $('#section-links').innerHTML = workspace.sections.map((s,i) => `<a href="#section-${escapeHTML(s.id)}">${i+1}. ${escapeHTML(s.title)}</a>`).join('');
-    $('#article-sections').innerHTML = workspace.sections.map((s,i) => `<article class="article-section" id="section-${escapeHTML(s.id)}"><div class="section-tools"><button data-suggest="${escapeHTML(s.title)}">Sugerir mudança +</button><a href="${githubURL('edit/main/' + s.path)}" target="_blank" rel="noopener">Editar seção ↗</a><a href="${githubURL('commits/main/' + s.path)}" target="_blank" rel="noopener">Histórico ↗</a></div><div class="article-body">${s.html}</div></article>`).join('');
+    $('#article-sections').innerHTML = workspace.sections.map((s,i) => `<article class="article-section" id="section-${escapeHTML(s.id)}"><div class="section-tools"><button data-suggest="${escapeHTML(s.title)}">Sugerir mudança +</button><button data-edit-section="${escapeHTML(s.path)}">Editar e revisar com IA</button><a href="${githubURL('commits/main/' + s.path)}" target="_blank" rel="noopener">Histórico ↗</a></div><div class="article-body">${s.html}</div></article>`).join('');
     $('#current-version').innerHTML = `<div class="eyebrow">PDF ATUAL</div><h2>The Research Map</h2><p class="muted">Versão ${escapeHTML(workspace.version)} · ${escapeHTML(date(workspace.generatedAt))}</p><div class="action-row"><a class="button primary" href="${escapeHTML(workspace.pdf)}" target="_blank" rel="noopener">Abrir PDF ↗</a><a class="button" href="${escapeHTML(workspace.pdf)}" download>Baixar PDF ↓</a></div>`;
     $('#suggest-section').innerHTML = ['Geral', ...workspace.sections.map(s => s.title)].map(s => `<option value="${escapeHTML(s)}">${escapeHTML(s)}</option>`).join('');
     try { const draft = JSON.parse(localStorage.getItem('research-map-suggestion') || '{}'); $('#suggest-title').value=draft.title||''; $('#suggest-body').value=draft.body||''; $('#suggest-section').value=draft.section||'Geral'; } catch { /* Ignore unavailable storage. */ }
@@ -64,7 +66,80 @@ async function init() {
     for (const id of ['#suggest-general','#new-suggestion']) $(id).addEventListener('click', () => suggest());
     $('#close-dialog').addEventListener('click', () => $('#suggestion-dialog').close());
     window.addEventListener('hashchange', setView);
-    $('#loading').hidden=true; setView(); await loadGitHub();
+    setupSectionReview(); $('#loading').hidden=true; setView(); await loadGitHub();
   } catch (error) { $('#loading').textContent = 'Não foi possível abrir a área de trabalho. Atualize a página ou consulte o repositório no GitHub.'; console.error(error.message); }
 }
 init();
+
+/* Section review: credentials remain in memory and are never sent to OpenAI. */
+let accessToken = '', activeSection, baseSha, originalText, reviewResult, reviewBusy=false;
+async function gh(path, options={}) {
+  if (!accessToken) throw new Error('Conecte sua credencial do GitHub primeiro.');
+  const response=await fetch(`https://api.github.com/repos/${workspace.repository}/${path}`, {...options,headers:{Accept:'application/vnd.github+json',Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json',...options.headers}});
+  if (!response.ok) throw new Error(response.status===409 || response.status===422 ? 'A seção mudou desde sua leitura. Reabra o formulário para comparar antes de salvar.' : `GitHub: operação não concluída (${response.status}). Confira acesso e permissões.`);
+  return response.status===204 ? null : response.json();
+}
+const encodeText = text => btoa(Array.from(new TextEncoder().encode(text), byte=>String.fromCharCode(byte)).join(''));
+const decodeText = text => new TextDecoder().decode(Uint8Array.from(atob(text.replace(/\s/g,'')), c=>c.charCodeAt(0)));
+function coloredDiff(before, after) {
+  const a=before.match(/\s+|[^\s]+/g)||[], b=after.match(/\s+|[^\s]+/g)||[];
+  // Bounded prefix/suffix diff keeps long sections responsive and all text intact.
+  let start=0,end=0;
+  while(start<a.length && start<b.length && a[start]===b[start]) start++;
+  while(end<a.length-start && end<b.length-start && a[a.length-1-end]===b[b.length-1-end]) end++;
+  return escapeHTML(a.slice(0,start).join(''))+'<del>'+escapeHTML(a.slice(start,a.length-end).join(''))+'</del><ins>'+escapeHTML(b.slice(start,b.length-end).join(''))+'</ins>'+escapeHTML(a.slice(a.length-end).join(''));
+}
+async function openSection(path) {
+  if(reviewBusy)return; activeSection=workspace.sections.find(s=>s.path===path); reviewResult=null; baseSha=null; $('#section-source').value='';
+  $('#section-editor-title').textContent=activeSection.title;
+  $('#section-editor').showModal(); $('#section-feedback').textContent='Carregando texto atual…';
+  $('#section-comparison').hidden=true; $('#accept-review').hidden=true;
+  try { const file=await gh(`contents/${path}?ref=${encodeURIComponent(workspace.branch||'main')}`); baseSha=file.sha; originalText=decodeText(file.content); $('#section-source').value=originalText; $('#section-feedback').textContent='Edite o texto LaTeX ou peça uma revisão desta seção.'; }
+  catch(error) { $('#section-feedback').textContent=error.message; $('#section-source').value=''; baseSha=null; }
+}
+async function requestSectionReview() {
+  if(reviewBusy || !baseSha) return;
+  if(new TextEncoder().encode($('#section-source').value).length>45000){$('#section-feedback').textContent='Esta seção ultrapassa o limite de 45000 bytes para revisão.';return;}
+  reviewBusy=true; $('#review-section').disabled=true; $('#save-section').disabled=true;
+  const source=$('#section-source').value, section=activeSection.path, id=crypto.randomUUID();
+  $('#section-feedback').textContent='Revisão solicitada. Aguarde; você pode manter este formulário aberto.';
+  try {
+    await gh('actions/workflows/section-review.yml/dispatches',{method:'POST',body:JSON.stringify({ref:workspace.branch||'main',inputs:{request_id:id,section,source,base_sha:baseSha,focus:$('#review-focus').value}})});
+    let result;
+    for(let i=0;i<120;i++) {
+      await new Promise(resolve=>setTimeout(resolve,5000));
+      try { const f=await gh(`contents/reviews/requests/${id}.json?ref=collaboration`); result=JSON.parse(decodeText(f.content)); break; } catch(error) { if(!error.message.includes('(404)')) throw error; }
+    }
+    if(!result) throw new Error('A revisão ainda não terminou. Seu texto permanece no formulário; tente novamente mais tarde.');
+    if(result.error) throw new Error(result.error);
+    if(activeSection.path!==section || $('#section-source').value!==source) throw new Error('O texto do formulário mudou durante a revisão. Solicite novamente para comparar a versão atual.');
+    reviewResult=result; $('#review-original').textContent=source; $('#review-proposed').textContent=result.revised;
+    $('#review-diff').innerHTML=coloredDiff(source,result.revised); $('#review-reason').textContent=result.summary;
+    $('#section-comparison').hidden=false; $('#accept-review').hidden=false;
+    $('#section-feedback').textContent='Confira a comparação. Aceitar coloca a proposta no campo de edição; salvar publica uma nova versão.';
+  } catch(error) { $('#section-feedback').textContent=error.message; }
+  finally {reviewBusy=false; $('#review-section').disabled=false; $('#save-section').disabled=false;}
+}
+async function saveSection() {
+  if(!baseSha || reviewBusy) return;
+  $('#save-section').disabled=true;
+  try {
+    const result=await gh(`contents/${activeSection.path}`,{method:'PUT',body:JSON.stringify({message:`Atualizar seção: ${activeSection.title}`,content:encodeText($('#section-source').value),sha:baseSha,branch:workspace.branch||'main'})});
+    baseSha=result.content.sha; originalText=$('#section-source').value;
+    $('#section-feedback').textContent='Seção salva com histórico de autoria. O PDF e a página serão atualizados após a compilação; recarregue em alguns minutos.';
+  } catch(error) {$('#section-feedback').textContent=error.message;}
+  finally {$('#save-section').disabled=false;}
+}
+function setupSectionReview() {
+ const panel=document.createElement('section'); panel.className='notice'; panel.innerHTML='<strong>Conexão para colaborar</strong><p>Use uma credencial de acesso fine-grained do GitHub limitada a este repositório, com Contents e Actions: leitura e escrita. Ela fica somente na memória desta aba. Nunca informe a chave GPT aqui.</p><label for="github-access">Credencial GitHub</label><input type="password" id="github-access" autocomplete="off"><button type="button" id="connect-github" class="button">Conectar</button> <button type="button" id="disconnect-github" class="button">Desconectar</button><p id="connection-status" role="status"></p>';
+ $('#article-sections').before(panel);
+ $('#connect-github').onclick=async()=>{accessToken=$('#github-access').value.trim();$('#github-access').value='';try{const repo=await gh('');if(!repo.permissions?.push)throw new Error('Esta conta não tem permissão de escrita no repositório.');$('#connection-status').textContent='Conectado. Você pode revisar e salvar seções.';}catch(error){accessToken='';$('#connection-status').textContent=error.message;}};
+ $('#disconnect-github').onclick=()=>{accessToken='';$('#connection-status').textContent='Desconectado.';};
+ document.querySelectorAll('[data-edit-section]').forEach(button=>button.onclick=()=>openSection(button.dataset.editSection));
+ $('#close-section-editor').onclick=()=>{if(!reviewBusy)$('#section-editor').close();};
+ $('#section-editor').addEventListener('cancel',event=>{if(reviewBusy)event.preventDefault();});
+ $('#review-section').onclick=requestSectionReview; $('#save-section').onclick=saveSection;
+ $('#accept-review').onclick=()=>{if(reviewResult){$('#section-source').value=reviewResult.revised;$('#accept-review').hidden=true;$('#section-feedback').textContent='Sugestão aplicada ao formulário. Você pode ajustar o texto antes de salvar.';}};
+ $('#discard-review').onclick=()=>{reviewResult=null;$('#section-comparison').hidden=true;$('#accept-review').hidden=true;};
+ for(const selector of ['#review-link','#ai-action']) {const link=$(selector);link.removeAttribute('target');link.removeAttribute('href');link.textContent='Revisar uma seção';link.onclick=()=>{location.hash='article';document.querySelector('[data-edit-section]')?.click();};}
+}
