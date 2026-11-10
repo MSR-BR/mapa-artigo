@@ -81,10 +81,12 @@ def build(output, compile_pdf=True):
             reviews.append(json.loads(p.read_text()))
         except json.JSONDecodeError:
             raise ValueError(f'Invalid review file: {p.name}')
-    data = {'repository': REPO, 'version': version, 'sha': sha, 'generatedAt': now.isoformat(), 'pdf': pdfname, 'compiled': compile_pdf, 'abstract': abstract, 'sections': sections, 'context': contexts, 'reviews': reviews, 'runUrl': f'https://github.com/{REPO}/actions/runs/{os.getenv("GITHUB_RUN_ID", "")}' }
+    data = {'branch': 'main', 'repository': REPO, 'version': version, 'sha': sha, 'generatedAt': now.isoformat(), 'pdf': pdfname, 'compiled': compile_pdf, 'abstract': abstract, 'sections': sections, 'context': contexts, 'reviews': reviews, 'runUrl': f'https://github.com/{REPO}/actions/runs/{os.getenv("GITHUB_RUN_ID", "")}' }
     (output / 'workspace.json').write_text(json.dumps(data, ensure_ascii=False))
     for name in ['index.html', 'style.css', 'app.js']:
         shutil.copy2(ROOT / 'web' / name, output / name)
+    index = output / 'index.html'
+    index.write_text(index.read_text().replace('src="app.js"', 'src="app.js?v=' + sha + '"').replace('href="style.css"', 'href="style.css?v=' + sha + '"'))
     (output / '.nojekyll').touch()
     (output / 'version.json').write_text(json.dumps({k: data[k] for k in ['version', 'sha', 'generatedAt', 'pdf', 'compiled']}))
     print(json.dumps({'version': version, 'pdf': pdfname, 'output': str(output)}))
