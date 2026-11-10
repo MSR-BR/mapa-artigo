@@ -35,7 +35,7 @@ async function init() {
     $('#repo-link').href = githubURL('');
     $('#invite-link').href = githubURL('settings/access');
     for (const selector of ['#top-pdf','#download-pdf']) $(selector).href = workspace.pdf;
-    
+
     $('#abstract-text').textContent = workspace.abstract;
     $('#section-links').innerHTML = workspace.sections.map((s,i) => `<a href="#section-${escapeHTML(s.id)}">${i+1}. ${escapeHTML(s.title)}</a>`).join('');
     $('#article-sections').innerHTML = workspace.sections.map((s,i) => `<article class="article-section" id="section-${escapeHTML(s.id)}"><div class="section-tools"><button data-suggest="${escapeHTML(s.title)}">Sugerir mudança +</button><button data-edit-section="${escapeHTML(s.path)}">Editar e revisar com IA</button><a href="${githubURL('commits/main/' + s.path)}" target="_blank" rel="noopener">Histórico ↗</a></div><div class="article-body">${s.html}</div></article>`).join('');
@@ -73,11 +73,20 @@ const encodeText = text => btoa(Array.from(new TextEncoder().encode(text), byte=
 const decodeText = text => new TextDecoder().decode(Uint8Array.from(atob(text.replace(/\s/g,'')), c=>c.charCodeAt(0)));
 function coloredDiff(before, after) {
   const a=before.match(/\s+|[^\s]+/g)||[], b=after.match(/\s+|[^\s]+/g)||[];
-  // Bounded prefix/suffix diff keeps long sections responsive and all text intact.
-  let start=0,end=0;
-  while(start<a.length && start<b.length && a[start]===b[start]) start++;
-  while(end<a.length-start && end<b.length-start && a[a.length-1-end]===b[b.length-1-end]) end++;
-  return escapeHTML(a.slice(0,start).join(''))+'<del>'+escapeHTML(a.slice(start,a.length-end).join(''))+'</del><ins>'+escapeHTML(b.slice(start,b.length-end).join(''))+'</ins>'+escapeHTML(a.slice(a.length-end).join(''));
+  const parts=[]; const emit=(kind,text)=>{if(!text)return;const last=parts[parts.length-1];if(last?.kind===kind)last.text+=text;else parts.push({kind,text});};
+  let i=0,j=0;
+  if((a.length+1)*(b.length+1)<=4000000){
+    const rows=Array.from({length:a.length+1},()=>new Uint16Array(b.length+1));
+    for(let x=a.length-1;x>=0;x--)for(let y=b.length-1;y>=0;y--)rows[x][y]=a[x]===b[y]?rows[x+1][y+1]+1:Math.max(rows[x+1][y],rows[x][y+1]);
+    while(i<a.length || j<b.length){if(i<a.length && j<b.length && a[i]===b[j]){emit('',a[i++]);j++;}else if(i<a.length && (j===b.length || rows[i+1][j]>=rows[i][j+1]))emit('del',a[i++]);else emit('ins',b[j++]);}
+  }else{
+    // Bounded alignment for very long sections; never omits or interprets text.
+    while(i<a.length && j<b.length){if(a[i]===b[j]){emit('',a[i++]);j++;continue;}let best;
+      for(let x=0;x<40 && i+x<a.length;x++)for(let y=0;y<40 && j+y<b.length;y++)if(a[i+x]===b[j+y] && (!best || x+y<best[0]+best[1]))best=[x,y];
+      if(best){emit('del',a.slice(i,i+best[0]).join(''));emit('ins',b.slice(j,j+best[1]).join(''));i+=best[0];j+=best[1];}else{emit('del',a[i++]);emit('ins',b[j++]);}}
+    emit('del',a.slice(i).join(''));emit('ins',b.slice(j).join(''));
+  }
+  return parts.map(part=>part.kind?`<${part.kind}>${escapeHTML(part.text)}</${part.kind}>`:escapeHTML(part.text)).join('');
 }
 async function openSection(path) {
   if(reviewBusy)return; activeSection=workspace.sections.find(s=>s.path===path); reviewResult=null; baseSha=null; $('#section-source').value='';
