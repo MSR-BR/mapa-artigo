@@ -33,7 +33,7 @@ jobs:
           persist-credentials: false
       - name: Revisar e abrir proposta para os autores
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_ARTIGOSERGIO }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.4' }}
           GH_TOKEN: ${{ github.token }}
         run: python3 scripts/review.py
