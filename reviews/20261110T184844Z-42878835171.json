@@ -1,0 +1,120 @@
+{
+  "summary": "O manuscrito está, em geral, coerente com o contrato científico: preserva as cinco etapas e a matriz companheira, distingue bem método original, formalização posterior e comportamento implementado, mantém a supervisão humana e evita, na maior parte do tempo, alegações de eficácia. A estrutura também está alinhada ao objetivo descritivo-crítico do artigo. Os pontos que ainda pedem ajuste concentram-se em: (i) reforçar algumas fronteiras entre comportamento inspecionado, comportamento proposto e exemplo ilustrativo; (ii) reduzir pequenas ambiguidades sobre o que exatamente foi verificado no código versus inferido do fluxo; (iii) explicitar algumas pendências autorais/editoriais ainda em aberto; e (iv) tornar mais uniforme a formulação da contribuição para não soar mais forte do que a evidência permite. Não identifiquei problemas conceituais graves na espinha dorsal do texto, mas há alguns trechos em que uma formulação mais precisa deixará o argumento mais seguro editorialmente.",
+  "notes": "Limitações desta revisão: não houve busca externa, verificação bibliográfica independente, execução do sistema, leitura do código-fonte completo nem conferência dos arquivos metodológicos primários citados. Portanto, a revisão avalia coerência textual, escopo alegado e aderência ao contrato, não a veracidade externa das referências ou do comportamento do software.\n\nPendências e tarefas de finalização ainda visíveis no conjunto atual:\n- Confirmar, com os coautores, autor correspondente e declarações CRediT.\n- Confirmar a autorização intelectual e editorial para citar e eventualmente disponibilizar os documentos metodológicos privados como suplemento.\n- Revisar a seção comparativa final à luz de C160/C161 para garantir que a distinção frente aos comparadores próximos permaneça específica e defensável.\n- Verificar se todos os enunciados sobre comportamento implementado estão sustentados pela auditoria de código prevista em C161, sobretudo fluxos de revisão, exportação e invalidação por dependência.\n- Uniformizar no texto inteiro a distinção entre: método original, especificação posterior, implementação atual e capacidades apenas prospectivas.\n- Conferir se o artigo final explicita, em local apropriado, que o walkthrough é construído e não executado, sem qualquer valor empírico.\n- Revisar front matter e back matter para declarações finais, inclusive aprovação da versão integral pelos coautores.\n- Fazer uma última checagem de consistência terminológica entre “problem”, “research question”, “central problem” e “research-questions unit”, para evitar sobreposição conceitual.",
+  "suggestions": [
+    {
+      "section": "article/sections/01-introduction.tex",
+      "title": "Suavizar a força da formulação da contribuição",
+      "reason": "A expressão atual pode soar um pouco assertiva demais sobre o alcance da contribuição. A substituição preserva a ideia, mas a ancora melhor no caráter descritivo e inspecionável do artigo.",
+      "original": "Our contribution is this explicit, inspectable correspondence for a particular planning method and its current application, together with the limits of that correspondence.",
+      "replacement": "Our contribution is a documented, inspectable account of the correspondence between a particular planning method and its current application, together with the limits of that correspondence.",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/02-related-work.tex",
+      "title": "Reduzir ambiguidade sobre o status de comparadores públicos",
+      "reason": "O parágrafo já é cauteloso, mas esta pequena troca deixa ainda mais claro que a limitação é de evidência disponível para este artigo, não uma propriedade dos produtos em si.",
+      "original": "Their public pages do not disclose enough internal behavior to determine whether their dependency rules are equivalent to the Research Map's, and we did not test authenticated workflows.",
+      "replacement": "Their public pages do not disclose enough internal behavior for this article to determine whether their dependency rules are equivalent to the Research Map's, and we did not test authenticated workflows.",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/03-method.tex",
+      "title": "Tornar mais precisa a descrição da convenção de redação do problema",
+      "reason": "A formulação atual pode parecer mais normativa do que o necessário. A versão proposta enfatiza que se trata de uma heurística local de formulação.",
+      "original": "It recommends beginning that question with expressions equivalent to ``How'' or ``In what way''.",
+      "replacement": "It recommends phrasing that question with expressions equivalent to ``How'' or ``In what way''.",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/04-system.tex",
+      "title": "Qualificar melhor o verbo sobre geração de problemas",
+      "reason": "“Proposes” pode sugerir um escopo semântico mais forte do que a evidência estática de código talvez sustente. “Returns” descreve de modo mais neutro a função do componente.",
+      "original": "A server-side generative component interprets that input and proposes six alternative research problems; the author selects one for further development.",
+      "replacement": "A server-side generative component interprets that input and returns six alternative research problems; the author selects one for further development.",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/04-system.tex",
+      "title": "Evitar inferência excessiva sobre componentes prospectivos não evidenciados",
+      "reason": "A redação atual é aceitável, mas pode ser ainda mais nítida ao separar ausência de evidência de negação categórica de implementação.",
+      "original": "The growing knowledge base and comprehensive methodological library envisaged in the detailed specification have not been evidenced as implemented learning components",
+      "replacement": "The growing knowledge base and comprehensive methodological library envisaged in the detailed specification are not evidenced here as implemented learning components",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/04-system.tex",
+      "title": "Precisar a distinção entre notificação e decisão de revisão",
+      "reason": "O trecho está correto, mas a substituição melhora a clareza procedimental: a decisão relevante é a revisão autenticada no aplicativo, não o e-mail.",
+      "original": "The advisor's authority comes from authenticated project access in the application, not from possession of the e-mail link.",
+      "replacement": "The advisor's review authority comes from authenticated project access in the application, not from possession of the e-mail link.",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/05-walkthrough.tex",
+      "title": "Uniformizar a linguagem do exemplo como hipótese explicativa",
+      "reason": "“Suppose” funciona, mas “consider” deixa o tom um pouco mais analítico e menos narrativo, o que combina com a seção ilustrativa.",
+      "original": "Suppose that the researcher begins with the question: ``How can metadata standardization support the discovery of historical photographs in a fictional municipal library?''",
+      "replacement": "Consider a researcher beginning with the question: ``How can metadata standardization support the discovery of historical photographs in a fictional municipal library?''",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/05-walkthrough.tex",
+      "title": "Evitar interpretação de teste parcial como validação substantiva",
+      "reason": "A última frase pode ser lida rapidamente como um mini-resultado técnico. A nova redação deixa mais explícito que se trata apenas de ausência de mensagens em um escopo estreito.",
+      "original": "The limited local wording checks previously performed on the example found no structural or lexical messages for the revised problem and objectives.",
+      "replacement": "The limited local wording checks previously performed on the example produced no structural or lexical messages for the revised problem and objectives within that narrow check scope.",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/06-discussion.tex",
+      "title": "Refinar a formulação sobre novidades para evitar leitura de prioridade",
+      "reason": "O parágrafo já evita claim de novidade ampla, mas esta formulação torna mais claro que a especificidade está na tradução método--sistema documentada.",
+      "original": "The present article instead specifies the Research Map's own units and their interdependencies, including the companion matrix, and examines their translation into application states and checks.",
+      "replacement": "The present article instead specifies the Research Map's own units and their interdependencies, including the companion matrix, and documents their translation into application states and checks.",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/06-discussion.tex",
+      "title": "Explicitar melhor o limite da evidência técnica",
+      "reason": "A seção já delimita o escopo, mas esta troca reduz o risco de o leitor inferir cobertura técnica mais ampla do que a disponível.",
+      "original": "The checks support selected statements about program behavior at the examined layers; they are not a complete end-to-end test of every database, notification, agent, and export path.",
+      "replacement": "The checks support selected statements about program behavior at the examined layers; they do not amount to a complete end-to-end verification of every database, notification, agent, and export path.",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/07-conclusion.tex",
+      "title": "Fechar a conclusão com contribuição mais estritamente delimitada",
+      "reason": "A conclusão está boa, mas a frase pode terminar de modo ainda mais compatível com o caráter descritivo-crítico do artigo.",
+      "original": "Together with the directed literature comparison and source-code inspection, it supports a bounded contribution: an explicit account of how this particular planning method is operationalized in a supervised authoring workflow.",
+      "replacement": "Together with the directed literature comparison and source-code inspection, it supports a bounded contribution: a documented account of how this particular planning method is operationalized in a supervised authoring workflow.",
+      "applicable": true
+    },
+    {
+      "section": "article/sections/01-introduction.tex",
+      "title": "Pendência editorial-autoral a registrar fora do corpo principal",
+      "reason": "Ainda faltam definições de autor correspondente, CRediT e autorização final dos materiais privados. Isso não pede reescrita local obrigatória do corpo do texto, mas deve entrar nas declarações/back matter antes da finalização.",
+      "original": "",
+      "replacement": "",
+      "applicable": false
+    }
+  ],
+  "model": "gpt-5.4",
+  "created_at": "2026-11-10T18:48:44.119874+00:00",
+  "commit": "75087674a54ad3dcac8958bcd91f78f5c7fa7b6d",
+  "focus": "Coerência, clareza, fundamentação e pendências para finalizar o artigo.",
+  "response_id": "resp_096a917baa461c9c016af366e69aac87d1bc666f290ec60716",
+  "usage": {
+    "input_tokens": 13209,
+    "input_tokens_details": {
+      "cache_write_tokens": 0,
+      "cached_tokens": 0
+    },
+    "output_tokens": 2084,
+    "output_tokens_details": {
+      "reasoning_tokens": 106
+    },
+    "total_tokens": 15293
+  },
+  "pull_request": "https://github.com/MSR-BR/mapa-artigo/pull/2"
+}
